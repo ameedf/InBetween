@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InBetween</title>
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+</head>
+
+<body onload="initialize()">
+  <button onclick="startNewGame()">Start a new game</button>
+  <table id="gameBoard">
+    <tr>
+      <td id="card1Container" style="width:100; height:150;"></td>
+      <td id="card3Container" style="width:100; height:150;"></td>
+      <td id="card2Container" style="width:100; height:150;"></td>
+      <td>
+        <table>
+          <tr>
+            <td style="background-color: green;">Hits</td>
+            <td style="background-color: red;">Misses</td>
+          </tr>
+          <tr>
+            <td style="background-color: green;">
+              <h1 id="hits">0</h1>
+            </td>
+            <td style="background-color: red;">
+              <h1 id="misses">0</h1>
+            </td>
+          </tr>
+          <tr>
+            <td>Remaining cards</td>
+            <td><h1 id="remainingCards">0</h1></td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td><button class="bidButton" onclick="bid(true)">In</button></td>
+      <td><button class="bidButton" onclick="bid(false)">Out</button></td>
+    </tr>
+  </table>
+
+  <script>
+    var deckId = null;
+    var card1 = 0;
+    var card2 = 0;
+    function initialize() {
+      $("#gameBoard").hide();
+    }
+
+    function startNewGame() {
+      deckId = null;
+      card1 = 0;
+      card2 = 0;
+      $("#hits").html("0");
+      $("#misses").html("0");
+      $.ajax({
+        url: "https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1",
+        success: function (response) {
+          deckId = response.deck_id;
+          updateRemaining(response);
+          card1 = card2 = 0;
+          $("#gameBoard").show();
+          nextRound();
+        }
+      });
+    }
+
+    function updateRemaining(response) {
+      $("#remainingCards").html(response.remaining);
+    }
+
+    function nextRound() {
+      $(".bidButton").attr("disabled", "true");
+      var remaining  = parseInt($("#remainingCards").html());
+      if (remaining < 3) {
+        endGame();
+        return;
+      }
+      $.ajax({
+        url: `https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=2`,
+        success: function (response) {
+         updateRemaining(response);
+          card1 = drawCard("card1Container", response.cards[0]);
+          card2 = drawCard("card2Container", response.cards[1]);
+          $("#card3Container").html(`<img width="130" height="200">`);
+          $(".bidButton").removeAttr("disabled");
+        }
+      });
+    }
+    function drawCard(element, card) {
+      $("#" + element).html(`<img src="${card.image}" width="130" height="200">`);
+      if (card.value == "JACK") {
+        return 11;
+      }
+      if (card.value == "QUEEN") {
+        return 12;
+      }
+      if (card.value == "KING") {
+        return 13;
+      }
+      if (card.value == "ACE") {
+        return 14;
+      }
+      return parseInt(card.value);
+    }
+
+    function bid(inRange) {
+      $(".bidButton").attr("disabled", "true");
+      $.ajax({
+        url: `https://deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`,
+        success: function (response) {
+          handleBid(response, inRange);
+        }
+      });
+    }
+
+    function handleBid(response, checkInRange) {
+      updateRemaining(response);
+      var bidCard = drawCard("card3Container", response.cards[0]);
+      var min = Math.min(card1, card2);
+      var max = Math.max(card1, card2);
+      if (checkInRange) {
+        if (bidCard < max && bidCard > min) {
+          seccess();
+        } else {
+          fail();
+        }
+      } else {
+        if (bidCard > max || bidCard < min) {
+          seccess();
+        } else {
+          fail();
+        }
+      }
+      setTimeout(nextRound, 2000);
+    }
+
+    function seccess() {
+      $("#hits").html(parseInt($("#hits").html()) + 1);
+    }
+
+    function fail() {
+      $("#misses").html(parseInt($("#misses").html()) + 1);
+    }
+    function endGame() {
+      if (parseInt($("#hits").html()) > parseInt($("#misses").html())) {
+        alert("You when !");
+      } else {
+        alert("You lose !!");
+      }
+      initialize();
+    }
+  </script>
+</body>
+
+</html>

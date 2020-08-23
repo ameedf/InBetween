@@ -1,0 +1,10 @@
+# In Between
+In this assignment, you'll be creating a game similar to the "In Between" game (AKA: Acey-Deucey). Before starting, please read the content of the 'Deck Of Cards API' site at 'http://deckofcardsapi.com/'.
+
+At the beginning, the HTML will contain only one button: "Start a new game". Once clicked, the page will call the API 'https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1' which will create a new shuffled deck and save it on the server side. Its id will return as a part of the response, and will be used for the following calls ("deck_id" field of the response).
+The button will reveal a div that contains the following data: hits, misses, and reamining cards in the deck.
+The page will then initiate a call to "draw" 2 cards using the URL 'https://deckofcardsapi.com/api/deck/deck_id/draw/?count=2' (note that "deck_id" should be inserted dynamically according to the first API call). Once the response is ready, the 2 cards will be displayed with a space between them, and 2 buttons bellow them: "In" and "Out". If the user hits "In" then she's guessing that the next card will be between the 2 cards. The page will fetch the next card, draw it between the 2 cards, and check if the user was right. If so the "hits" will be increased by one; otherwise the "misses" will be increased by one.
+Hitting the "Out" buttons means that the user guesses the next card will be smaller than the lowest card, or greater than the highest one. The "hits" and "misses" will be updated accordingly.
+After the guessed card has been rendered and the hits and misses and the remaining cards updated, the page will wait for 2 seconds and start a new round (fetching the next 2 cards and waiting for the user to press "In" or "Out").
+Make sure that the buttons are disabled during API calls. When the number of the remaining cards is less that 3, the game ends and an alert with "You won" will be displayed if the number of hits is greater than the number of the misses; otherwise, "You lost" will be displayed.
+Good luck..
